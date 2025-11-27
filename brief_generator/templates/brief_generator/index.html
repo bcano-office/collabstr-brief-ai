@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Brief Generator | Collabstr</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .content {
+            padding: 0;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+            font-size: 15px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s;
+            font-family: inherit;
+            background: #ffffff;
+            color: #1a1a1a;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            padding-right: 45px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 48px;
+            padding: 40px;
+            background: #f9fafb;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 32px;
+        }
+
+        .result-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-section h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #ff6b9d 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brief-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .angles-list {
+            list-style: none;
+            counter-reset: angle-counter;
+        }
+
+        .angles-list li {
+            counter-increment: angle-counter;
+            padding: 12px 0 12px 40px;
+            position: relative;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .angles-list li::before {
+            content: counter(angle-counter);
+            position: absolute;
+            left: 0;
+            top: 12px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #8b5cf6 100%);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .criteria-list {
+            list-style: none;
+        }
+
+        .criteria-list li {
+            padding: 8px 0 8px 24px;
+            position: relative;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .criteria-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #8b5cf6;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .error {
+            display: none;
+            padding: 16px 20px;
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            border-radius: 12px;
+            color: #dc2626;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .metrics {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metrics span {
+            margin-right: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Brief Generator</h1>
+            <p>Create professional campaign briefs for your influencer marketing campaigns</p>
+        </div>
+        
+        <div class="content">
+            <form id="briefForm">
+                <div class="form-group">
+                    <label for="brandName">Brand Name</label>
+                    <input type="text" id="brandName" name="brandName" required placeholder="Enter your brand name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="platform">Target Platform</label>
+                    <select id="platform" name="platform" required>
+                        <option value="">Select platform</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="UGC">UGC</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal">Goal</label>
+                    <select id="goal" name="goal" required>
+                        <option value="">Select goal</option>
+                        <option value="Awareness">Awareness</option>
+                        <option value="Conversions">Conversions</option>
+                        <option value="Content Assets">Content Assets</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone" name="tone" required>
+                        <option value="">Select tone</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Friendly">Friendly</option>
+                        <option value="Playful">Playful</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Generate Brief</button>
+            </form>
+            
+            <div class="error" id="errorMsg"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your campaign brief...</p>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="result-section">
+                    <h2>Campaign Brief</h2>
+                    <p class="brief-text" id="briefText"></p>
+                </div>
+                
+                <div class="result-section">
+                    <h2>Content Angles</h2>
+                    <ol class="angles-list" id="anglesList"></ol>
+                </div>
+                
+                <div class="result-section">
+                    <h2>Creator Selection Criteria</h2>
+                    <ul class="criteria-list" id="criteriaList"></ul>
+                </div>
+                
+                <div class="metrics" id="metrics"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#briefForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                $('#result').removeClass('active');
+                $('#errorMsg').removeClass('active');
+                
+                const formData = {
+                    brand_name: $('#brandName').val().trim(),
+                    platform: $('#platform').val(),
+                    goal: $('#goal').val(),
+                    tone: $('#tone').val()
+                };
+                
+                if (!formData.brand_name || !formData.platform || !formData.goal || !formData.tone) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+                
+                $('#submitBtn').prop('disabled', true);
+                $('#loading').addClass('active');
+                
+                $.ajax({
+                    url: '/api/generate-brief/',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            displayResult(response);
+                        } else {
+                            showError(response.error || 'Failed to generate brief');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'An error occurred';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        } else if (xhr.status === 429) {
+                            errorMsg = 'Rate limit exceeded. Please try again in a minute.';
+                        } else if (xhr.status === 400) {
+                            errorMsg = 'Invalid input. Please check your form data.';
+                        }
+                        showError(errorMsg);
+                    },
+                    complete: function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#loading').removeClass('active');
+                    }
+                });
+            });
+            
+            function showError(message) {
+                $('#errorMsg').text(message).addClass('active');
+            }
+            
+            function displayResult(data) {
+                $('#briefText').text(data.brief);
+                
+                const anglesList = $('#anglesList');
+                anglesList.empty();
+                data.angles.forEach(function(angle) {
+                    anglesList.append($('<li>').text(angle));
+                });
+                
+                const criteriaList = $('#criteriaList');
+                criteriaList.empty();
+                data.criteria.forEach(function(criterion) {
+                    criteriaList.append($('<li>').text(criterion));
+                });
+                
+                if (data.metrics) {
+                    const metrics = data.metrics;
+                    const metricsHtml = `
+                        <span>Latency: ${metrics.latency_seconds}s</span>
+                        <span>Tokens: ${metrics.tokens_used}</span>
+                        <span>Model: ${metrics.model}</span>
+                    `;
+                    $('#metrics').html(metricsHtml);
+                }
+                
+                $('#result').addClass('active');
+                
+                $('html, body').animate({
+                    scrollTop: $('#result').offset().top - 20
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
+
