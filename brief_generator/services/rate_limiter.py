@@ -1,3 +1,6 @@
+from typing import Any
+
+
 from datetime import datetime, timedelta
 from django.conf import settings
 from collections import defaultdict
@@ -5,7 +8,7 @@ from collections import defaultdict
 
 class RateLimiter:
     def __init__(self):
-        self.requests = defaultdict(list)
+        self.requests = defaultdict[Any, list](list)
         self.max_requests = getattr(settings, 'RATE_LIMIT_REQUESTS_PER_MINUTE', 10)
         self.window_seconds = 60
     
