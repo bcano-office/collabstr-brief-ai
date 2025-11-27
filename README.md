@@ -21,7 +21,10 @@ git clone https://github.com/bcano-office/collabstr-brief-ai
 cd Collabstr-brief-ai
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+
+# For local development (Windows users: use this to avoid psycopg2-binary build errors)
+pip install -r requirements-dev.txt
+
 cp .env.example .env
 # Add your OPENAI_API_KEY to .env
 python manage.py migrate
